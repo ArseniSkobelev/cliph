@@ -61,7 +61,6 @@ class UserService : IUserService
                    throw new InvalidOperationException("Unable to retrieve configuration setup")
                ))
         {
-
             var existingUserFilterBuilder = Builders<User>.Filter;
             var existingUserFilter =
                 existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
