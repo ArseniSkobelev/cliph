@@ -43,9 +43,21 @@ public class ApiKeyService : IApiKeyService
         return apiKey;
     }
 
-    public Task<bool> ValidateApiKey(string apiKey)
+    public async Task<bool> ValidateApiKey(string apiKey)
     {
-        throw new NotImplementedException();
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        if (string.IsNullOrWhiteSpace(apiKey))
+            return false;
+            
+        var adminFilter = Builders<AdminUser>.Filter.Eq(doc => doc.ApiKey!.Value, apiKey);
+
+        var admin = await db.GetCollection<AdminUser>("users").Find(adminFilter).FirstOrDefaultAsync();
+
+        return admin != null;
     }
 
     public async Task<ApiKey> GetApiKey(string userJwt)
@@ -58,8 +70,17 @@ public class ApiKeyService : IApiKeyService
         Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
 
         var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
-            
-        var existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
+
+        AdminUser existingUser;
+
+        try
+        {
+            existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
+        }
+        catch (Exception)
+        {
+            throw new Exception("Unable to fetch API key for the provided user");
+        }
         
         if (existingUser.ApiKey == null)
             throw new Exception("Unable to fetch API key for the provided user");

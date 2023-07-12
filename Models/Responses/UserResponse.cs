@@ -7,9 +7,9 @@ public class UserResponse
 {
     [BsonIgnore]
     [JsonProperty("jwt")]
-    public string Jwt { get; set; }
+    public string? Jwt { get; set; }
     
     [BsonIgnore]
     [JsonProperty("user")]
-    public User.User User { get; set; }
+    public User.User? User { get; set; }
 }

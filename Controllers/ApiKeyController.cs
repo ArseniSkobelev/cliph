@@ -24,17 +24,16 @@ public class ApiKeyController : ControllerBase
     {
         try
         {
-            if (Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
-            {
-                if (string.IsNullOrWhiteSpace(authHeaderValue))
-                    return new JsonResult(new Response(false, "Authentication token not found"));
+            if (!Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+                return new JsonResult(new Response(false, "Unable to fetch the API key for the requested user"));
+            
+            if (string.IsNullOrWhiteSpace(authHeaderValue))
+                return new JsonResult(new Response(false, "Authentication token not found"));
 
-                var apiKey = await _apiKeyService.GetApiKey(authHeaderValue.ToString().Replace("Bearer ", ""));
+            var apiKey = await _apiKeyService.GetApiKey(authHeaderValue.ToString().Replace("Bearer ", ""));
 
-                return new JsonResult(new Response<ApiKey>(true, apiKey, "Retrieved API key successfully"));
-            }
-        
-            return new JsonResult(new Response(false, "Unable to fetch the API key for the requested user"));
+            return new JsonResult(new Response<ApiKey>(true, apiKey, "Retrieved API key successfully"));
+
         }
         catch (Exception e)
         {

@@ -13,6 +13,9 @@ public static class UserLib
     {
         var newUserId = ObjectId.GenerateNewId();
 
+        if (newUserData.Email == null || newUserData.Password == null)
+            throw new Exception("Unable to retrieve new user data");
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, newUserData.Email),
@@ -21,8 +24,8 @@ public static class UserLib
         
         var jwt = Jwt.CreateJwt(
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
-            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
-            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Issuer"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Audience"),
             60.0,
             claims
         );

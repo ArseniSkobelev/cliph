@@ -7,9 +7,10 @@ public class ApiKey
 {
     [BsonElement("value")]
     [JsonProperty("value")] 
-    public string Value { get; set; }
+    public string? Value { get; set; }
     
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     [BsonElement("created_at")]
-    [JsonProperty("created_at")] public DateTime CreatedAt { get; set; }
+    [JsonProperty("created_at")] 
+    public DateTime CreatedAt { get; set; }
 }

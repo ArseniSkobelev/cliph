@@ -21,11 +21,11 @@ public class User
 
     [BsonElement("email")]
     [JsonProperty("email")]
-    public string Email { get; set; }
+    public string Email { get; set; } = "user@default.com";
 
     [BsonElement("password_hash")]
     [System.Text.Json.Serialization.JsonIgnore]
-    public string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = "changeme";
 
     [BsonElement("first_name")]
     [JsonProperty("first_name")]

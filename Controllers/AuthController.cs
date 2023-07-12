@@ -12,12 +12,10 @@ namespace cliph.Controllers;
 [Route("/api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IUserService _userService;
     private readonly IAuthService _authService;
 
-    public AuthController(IUserService userService, IAuthService authService)
+    public AuthController(IAuthService authService)
     {
-        _userService = userService;
         _authService = authService;
     }
     
@@ -31,12 +29,12 @@ public class AuthController : ControllerBase
                 if (string.IsNullOrWhiteSpace(apiKeyHeaderValue))
                     return new JsonResult(new Response(false, "Unable to verify administrator authentication token"));
 
-                var managedUserResult = await _userService.CreateUser(newUserData, apiKeyHeaderValue!);
+                var managedUserResult = await _authService.CreateAccount(newUserData, apiKeyHeaderValue!);
 
                 return new JsonResult(new Response<UserResponse>(true, managedUserResult, "Created a new user successfully"));
             }
 
-            var adminUserResult = await _userService.CreateUser(newUserData);
+            var adminUserResult = await _authService.CreateAccount(newUserData);
         
             return new JsonResult(new Response<UserResponse>(true, adminUserResult, "Created a new user successfully"));
         }

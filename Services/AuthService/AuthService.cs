@@ -3,6 +3,7 @@ using cliph.Library;
 using cliph.Models.Requests;
 using cliph.Models.Responses;
 using cliph.Models.User;
+using cliph.Services.ApiKeyService;
 using MongoDB.Driver;
 
 namespace cliph.Services.AuthService;
@@ -10,10 +11,12 @@ namespace cliph.Services.AuthService;
 class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
+    private readonly IApiKeyService _apiKeyService;
 
-    public AuthService(IConfiguration configuration)
+    public AuthService(IConfiguration configuration, IApiKeyService apiKeyService)
     {
         _configuration = configuration;
+        _apiKeyService = apiKeyService;
     }
     
     public async Task<UserResponse> CreateSession(UserRequest existingUserData)
@@ -43,18 +46,15 @@ class AuthService : IAuthService
                 new Claim("user_id", existingUser.Id.ToString()),
             };
         }
-        catch (Exception e)
+        catch (Exception)
         {
             throw new Exception("Sorry, we can't find an account with this email and password combo. Please try again or create a new account.");
         }
         
         var jwt = Jwt.CreateJwt(
-            _configuration.GetValue<String>("JWT:Secret") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            _configuration.GetValue<String>("JWT:Issuer") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            _configuration.GetValue<String>("JWT:Audience") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Secret"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Issuer"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Audience"),
             60.0,
             claims
         );
@@ -73,15 +73,8 @@ class AuthService : IAuthService
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
         );
         
-        if (string.IsNullOrWhiteSpace(adminApiKey))
-            throw new Exception("Could not retrieve the provided administrator API token.");
-            
-        var adminFilter = Builders<AdminUser>.Filter.Eq(doc => doc.ApiKey.Value, adminApiKey);
-
-        var admin = await db.GetCollection<AdminUser>("users").Find(adminFilter).FirstOrDefaultAsync();
-            
-        if (admin == null)
-            throw new Exception("Unable to find an administrator account with the provided API key. Please try again later or contact your system administrator.");
+        if(!await _apiKeyService.ValidateApiKey(adminApiKey))
+            throw new Exception("The provided API key does not exist");
 
         var userFilterBuilder = Builders<ManagedUser>.Filter;
         var userFilter = 
@@ -106,18 +99,15 @@ class AuthService : IAuthService
                 new Claim("user_id", existingUser.Id.ToString()),
             };
         }
-        catch (Exception e)
+        catch (Exception)
         {
             throw new Exception("Sorry, we can't find an account with this email and password combo. Please try again or create a new account.");
         }
         
         var jwt = Jwt.CreateJwt(
-            _configuration.GetValue<String>("JWT:Secret") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            _configuration.GetValue<String>("JWT:Issuer") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            _configuration.GetValue<String>("JWT:Audience") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Secret"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Issuer"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "JWT:Audience"),
             60.0,
             claims
         );
@@ -127,5 +117,51 @@ class AuthService : IAuthService
             Jwt = jwt,
             User = existingUser
         };
+    }
+
+    public async Task<UserResponse> CreateAccount(UserRequest newUserData)
+    {
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        var existingUserFilterBuilder = Builders<User>.Filter;
+        var existingUserFilter =
+            existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
+            existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Admin);
+
+        var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
+        if (existingUser != null)
+            throw new Exception("User with the provided username/email already exists");
+
+        var newUser = UserLib.CreateUser(newUserData, UserType.Admin, _configuration, null);
+
+        await db.GetCollection<User>("users").InsertOneAsync(newUser.User ?? throw new InvalidOperationException("Unable to create a new managed user"));
+
+        return newUser;
+    }
+
+    public async Task<UserResponse> CreateAccount(UserRequest newUserData, string adminApiKey)
+    {
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        var existingUserFilterBuilder = Builders<User>.Filter;
+        var existingUserFilter =
+            existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
+            existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Regular);
+
+        var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
+        if (existingUser != null)
+            throw new Exception("User with the provided username/email already exists");
+
+        var newUser = UserLib.CreateUser(newUserData, UserType.Regular, _configuration, adminApiKey);
+
+        await db.GetCollection<User>("users").InsertOneAsync(newUser.User ?? throw new InvalidOperationException("Unable to create a new managed user"));
+
+        return newUser;
     }
 }

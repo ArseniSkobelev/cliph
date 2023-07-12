@@ -3,10 +3,10 @@ using static System.GC;
 
 namespace cliph.Library;
 
-public class Database : IDisposable
+public sealed class Database : IDisposable
 {
-    private MongoClient _client;
-    private IMongoDatabase _database;
+    private MongoClient? _client;
+    private IMongoDatabase? _database;
     private bool _disposed = false;
 
     public Database(string connectionString, string databaseName)
@@ -17,7 +17,8 @@ public class Database : IDisposable
 
     public IMongoCollection<T> GetCollection<T>(string collectionName)
     {
-        return _database.GetCollection<T>(collectionName);
+        if (_database != null) return _database.GetCollection<T>(collectionName);
+        throw new Exception("Unable to find the collection");
     }
 
     public void Dispose()
@@ -26,7 +27,7 @@ public class Database : IDisposable
         SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed) return;
         if (disposing)
