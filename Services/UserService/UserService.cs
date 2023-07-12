@@ -21,61 +21,48 @@ class UserService : IUserService
     
     public async Task<UserResponse> CreateUser(UserRequest newUserData)
     {
-        // create a new admin user
-        Console.WriteLine("Creating a new admin user..");
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        var existingUserFilterBuilder = Builders<User>.Filter;
+        var existingUserFilter =
+            existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
+            existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Admin);
 
-        using (var db = new Database(
-                   _configuration.GetValue<String>("Database:ConnectionString") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup"),
-                   _configuration.GetValue<String>("Database:Name") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup")
-               ))
-        {
+        var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
+        if (existingUser != null)
+            throw new Exception("User with the provided username/email already exists");
 
-            var existingUserFilterBuilder = Builders<User>.Filter;
-            var existingUserFilter =
-                existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
-                existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Admin);
+        var newUser = UserLib.CreateUser(newUserData, UserType.Admin, _configuration, null);
 
-            var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
-            if (existingUser != null)
-                throw new Exception("User with the provided username/email already exists");
+        await db.GetCollection<User>("users").InsertOneAsync(newUser.User);
 
-            var newUser = UserLib.CreateUser(newUserData, UserType.Admin, _configuration, null);
-
-            await db.GetCollection<User>("users").InsertOneAsync(newUser.User);
-
-            return newUser;
-        }
+        return newUser;
     }
 
     public async Task<UserResponse> CreateUser(UserRequest newUserData, string adminApiKey)
     {
-        // create a new managed user
-        Console.WriteLine("Creating a new managed user..");
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        var existingUserFilterBuilder = Builders<User>.Filter;
+        var existingUserFilter =
+            existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
+            existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Regular);
 
-        using (var db = new Database(
-                   _configuration.GetValue<String>("Database:ConnectionString") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup"),
-                   _configuration.GetValue<String>("Database:Name") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup")
-               ))
-        {
-            var existingUserFilterBuilder = Builders<User>.Filter;
-            var existingUserFilter =
-                existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
-                existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Regular);
+        var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
+        if (existingUser != null)
+            throw new Exception("User with the provided username/email already exists");
 
-            var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
-            if (existingUser != null)
-                throw new Exception("User with the provided username/email already exists");
+        var newUser = UserLib.CreateUser(newUserData, UserType.Regular, _configuration, adminApiKey);
 
-            var newUser = UserLib.CreateUser(newUserData, UserType.Regular, _configuration, adminApiKey);
+        await db.GetCollection<User>("users").InsertOneAsync(newUser.User);
 
-            await db.GetCollection<User>("users").InsertOneAsync(newUser.User);
-
-            return newUser;
-        }
+        return newUser;
     }
 
     public Task<User> UpdateUser(User updatedUserData, string userJwt)
@@ -90,25 +77,19 @@ class UserService : IUserService
 
     public async Task<User> GetUserData(string userJwt)
     {
-        using (var db = new Database(
-                   _configuration.GetValue<String>("Database:ConnectionString") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup"),
-                   _configuration.GetValue<String>("Database:Name") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup")
-               ))
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(userJwt);
-            
-            string? userId = token.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
 
-            var userFilter = Builders<User>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userId));
-            
-            var existingUser = await db.GetCollection<User>("users").Find(userFilter).FirstOrDefaultAsync();
-            if (existingUser == null)
-                throw new Exception("No user found with the provided authentication data");
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
 
-            return existingUser;
-        }
+        var userFilter = Builders<User>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
+            
+        var existingUser = await db.GetCollection<User>("users").Find(userFilter).FirstOrDefaultAsync();
+        if (existingUser == null)
+            throw new Exception("No user found with the provided authentication data");
+
+        return existingUser;
     }
 }

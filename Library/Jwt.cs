@@ -26,4 +26,26 @@ public static class Jwt
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    public static Claim RetrieveClaimByClaimType(string token, string claimType)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var parsedToken = handler.ReadJwtToken(token);
+
+        Claim? foundClaim;
+
+        try
+        {
+            foundClaim = parsedToken.Claims.FirstOrDefault(claim => claim.Type == claimType);
+        }
+        catch (Exception)
+        {
+            throw new SecurityTokenDecryptionFailedException("Unable to retrieve a claim with the given claim type");
+        }
+        
+        if(foundClaim == null)
+            throw new SecurityTokenDecryptionFailedException("Unable to retrieve a claim with the given claim type");
+
+        return foundClaim;
+    }
 }

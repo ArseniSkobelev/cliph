@@ -20,12 +20,9 @@ public static class UserLib
         };
         
         var jwt = Jwt.CreateJwt(
-            configuration.GetValue<String>("JWT:Secret") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            configuration.GetValue<String>("JWT:Issuer") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
-            configuration.GetValue<String>("JWT:Audience") ??
-            throw new InvalidOperationException("Unable to retrieve configuration setup"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(configuration, "JWT:Secret"),
             60.0,
             claims
         );

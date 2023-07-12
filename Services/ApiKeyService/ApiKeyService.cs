@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using cliph.Library;
 using cliph.Models;
 using cliph.Models.User;
@@ -7,7 +8,7 @@ using MongoDB.Driver;
 
 namespace cliph.Services.ApiKeyService;
 
-class ApiKeyService : IApiKeyService
+public class ApiKeyService : IApiKeyService
 {
     private readonly IConfiguration _configuration;
 
@@ -18,34 +19,28 @@ class ApiKeyService : IApiKeyService
     
     public async Task<ApiKey> InvalidateApiKey(string userJwt)
     {
-        using (var db = new Database(
-                   _configuration.GetValue<String>("Database:ConnectionString") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup"),
-                   _configuration.GetValue<String>("Database:Name") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup")
-               ))
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+            
+        var apiKey = new ApiKey
         {
-            var newApiKey = Guid.NewGuid();
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(userJwt);
+            Value = Guid.NewGuid().ToString(),
+            CreatedAt = DateTime.Now
+        };
+
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
+
+        var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
+        var userUpdate = Builders<AdminUser>.Update.Set(doc => doc.ApiKey, apiKey);
             
-            string? userId = token.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
+        var updatedUser = await db.GetCollection<AdminUser>("users").UpdateOneAsync(userFilter, userUpdate);
+        
+        if (!updatedUser.IsAcknowledged || updatedUser.ModifiedCount < 1)
+            throw new Exception("Unable to invalidate the users API key");
 
-            var apiKey = new ApiKey
-            {
-                Value = newApiKey.ToString(),
-                CreatedAt = DateTime.Now
-            };
-
-            var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userId));
-            var userUpdateBuilt = Builders<AdminUser>.Update.Set(doc => doc.ApiKey, apiKey);
-            
-            var userUpdate = await db.GetCollection<AdminUser>("users").UpdateOneAsync(userFilter, userUpdateBuilt);
-            if (!userUpdate.IsAcknowledged || userUpdate.ModifiedCount < 1)
-                throw new Exception("Unable to fetch API key for the provided user");
-
-            return apiKey;
-        }
+        return apiKey;
     }
 
     public Task<bool> ValidateApiKey(string apiKey)
@@ -55,25 +50,20 @@ class ApiKeyService : IApiKeyService
 
     public async Task<ApiKey> GetApiKey(string userJwt)
     {
-        using (var db = new Database(
-                   _configuration.GetValue<String>("Database:ConnectionString") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup"),
-                   _configuration.GetValue<String>("Database:Name") ??
-                   throw new InvalidOperationException("Unable to retrieve configuration setup")
-               ))
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(userJwt);
-            
-            string? userId = token.Claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+        
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
 
-            var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userId));
+        var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
             
-            var existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
-            if (existingUser.ApiKey == null)
-                throw new Exception("Unable to fetch API key for the provided user");
+        var existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
+        
+        if (existingUser.ApiKey == null)
+            throw new Exception("Unable to fetch API key for the provided user");
 
-            return existingUser.ApiKey;
-        }
+        return existingUser.ApiKey;
     }
 }

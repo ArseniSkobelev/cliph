@@ -28,7 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidIssuer = configuration.GetValue<string>("JWT:Issuer"),
                 ValidAudience = configuration.GetValue<string>("Jwt:Audience"),
                 IssuerSigningKey =
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JWT:Secret") ?? throw new InvalidOperationException()))
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JWT:Secret") ?? throw new InvalidOperationException("JWT:Secret ENV is not set. Please check your configuration.")))
             };
         }
     );
