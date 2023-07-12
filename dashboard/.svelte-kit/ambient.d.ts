@@ -26,6 +26,8 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const SECRET_AUTHENTICATION_API_ENDPOINT: string;
+	export const SECRET_CSCA_KEY: string;
 	export const ACLOCAL_PATH: string;
 	export const ALLUSERSPROFILE: string;
 	export const APPDATA: string;
@@ -36,7 +38,6 @@ declare module '$env/static/private' {
 	export const CommonProgramW6432: string;
 	export const COMPUTERNAME: string;
 	export const COMSPEC: string;
-	export const CONDA_PROMPT_MODIFIER: string;
 	export const CONFIG_SITE: string;
 	export const DADIR: string;
 	export const DISPLAY: string;
@@ -101,11 +102,7 @@ declare module '$env/static/private' {
 	export const PKG_CONFIG_SYSTEM_LIBRARY_PATH: string;
 	export const PLINK_PROTOCOL: string;
 	export const POSH_INSTALLER: string;
-	export const POSH_PID: string;
-	export const POSH_SHELL_VERSION: string;
-	export const POSH_THEME: string;
 	export const POSH_THEMES_PATH: string;
-	export const POWERLINE_COMMAND: string;
 	export const PROCESSOR_ARCHITECTURE: string;
 	export const PROCESSOR_IDENTIFIER: string;
 	export const PROCESSOR_LEVEL: string;
@@ -166,6 +163,8 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		SECRET_AUTHENTICATION_API_ENDPOINT: string;
+		SECRET_CSCA_KEY: string;
 		ACLOCAL_PATH: string;
 		ALLUSERSPROFILE: string;
 		APPDATA: string;
@@ -176,7 +175,6 @@ declare module '$env/dynamic/private' {
 		CommonProgramW6432: string;
 		COMPUTERNAME: string;
 		COMSPEC: string;
-		CONDA_PROMPT_MODIFIER: string;
 		CONFIG_SITE: string;
 		DADIR: string;
 		DISPLAY: string;
@@ -241,11 +239,7 @@ declare module '$env/dynamic/private' {
 		PKG_CONFIG_SYSTEM_LIBRARY_PATH: string;
 		PLINK_PROTOCOL: string;
 		POSH_INSTALLER: string;
-		POSH_PID: string;
-		POSH_SHELL_VERSION: string;
-		POSH_THEME: string;
 		POSH_THEMES_PATH: string;
-		POWERLINE_COMMAND: string;
 		PROCESSOR_ARCHITECTURE: string;
 		PROCESSOR_IDENTIFIER: string;
 		PROCESSOR_LEVEL: string;

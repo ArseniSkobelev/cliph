@@ -1,4 +1,5 @@
 using System.Text;
+using cliph.Middleware;
 using cliph.Services.ApiKeyService;
 using cliph.Services.AuthService;
 using cliph.Services.UserService;
@@ -65,6 +66,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<CrossServiceCommunicationAuthenticationMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

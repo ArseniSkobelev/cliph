@@ -1,3 +1,9 @@
 {
-	"/": []
+	"/(dashboard)": [],
+	"/(auth)": [],
+	"/": [],
+	"/(auth)/auth/login": [],
+	"/(auth)/auth/signup": [
+		"src/routes/(auth)/auth/signup/+page.server.ts"
+	]
 }

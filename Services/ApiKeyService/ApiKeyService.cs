@@ -55,7 +55,16 @@ public class ApiKeyService : IApiKeyService
             
         var adminFilter = Builders<AdminUser>.Filter.Eq(doc => doc.ApiKey!.Value, apiKey);
 
-        var admin = await db.GetCollection<AdminUser>("users").Find(adminFilter).FirstOrDefaultAsync();
+        AdminUser admin;
+
+        try
+        {
+            admin = await db.GetCollection<AdminUser>("users").Find(adminFilter).FirstOrDefaultAsync();
+        }
+        catch (Exception)
+        {
+            throw new Exception("Unable to verify administrator authentication key");
+        }
 
         return admin != null;
     }

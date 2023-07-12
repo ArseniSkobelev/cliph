@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
                 if (string.IsNullOrWhiteSpace(apiKeyHeaderValue))
                     return new JsonResult(new Response(false, "Unable to verify administrator authentication token"));
 
-                var managedUserResult = await _authService.CreateSession(existingUserData, apiKeyHeaderValue!);
+                var managedUserResult = await _authService.CreateSession(existingUserData, apiKeyHeaderValue.ToString());
 
                 return new JsonResult(new Response<UserResponse>(true, managedUserResult, "Created a session successfully"));
             }
@@ -67,6 +67,7 @@ public class AuthController : ControllerBase
         catch (Exception e)
         {
             Response.StatusCode = 500;
+            Console.WriteLine(e.Message);
             return new JsonResult(new Response(false, e.Message));
         }
     }

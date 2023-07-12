@@ -26,7 +26,10 @@ class AuthService : IAuthService
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
         );
         
-        var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Email, existingUserData.Email);
+        var userFilterBuilder = Builders<AdminUser>.Filter;
+        var userFilter = 
+            userFilterBuilder.Eq(doc => doc.Email, existingUserData.Email) &
+            userFilterBuilder.Eq(doc => doc.UserType, UserType.Admin);
             
         var existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
 
@@ -81,8 +84,19 @@ class AuthService : IAuthService
             userFilterBuilder.Eq(doc => doc.Email, existingUserData.Email) &
             userFilterBuilder.Eq(doc => doc.UserType, UserType.Regular);
 
-        var existingUser = await db.GetCollection<ManagedUser>("users").Find(userFilter).FirstOrDefaultAsync();
-            
+        ManagedUser existingUser;
+
+        try
+        {
+            existingUser = await db.GetCollection<ManagedUser>("users").Find(userFilter).FirstOrDefaultAsync();
+
+        }
+        catch (Exception e)
+        {
+            throw new NullReferenceException(
+                "Sorry, we can't find an account with this email and password combo. Please try again or create a new account.");
+        }    
+        
         if (existingUser == null)
             throw new NullReferenceException("Sorry, we can't find an account with this email and password combo. Please try again or create a new account.");
             

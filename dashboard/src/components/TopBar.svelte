@@ -1,2 +1,3 @@
-<!--<div class="w-full border-1 bg-theme-primary-accent text-theme-light-text">-->
-<!--</div>-->
+<div class="w-full bg-theme-primary-accent-700 z-0 text-theme-light-text p-4">
+    <h1>I am the topbar</h1>
+</div>
