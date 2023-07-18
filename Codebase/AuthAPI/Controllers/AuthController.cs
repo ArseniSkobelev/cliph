@@ -1,4 +1,5 @@
 using System.Security.Authentication;
+using cliph.Library;
 using cliph.Models.Http;
 using cliph.Models.Requests;
 using cliph.Models.Responses;
@@ -13,17 +14,19 @@ namespace cliph.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
         _authService = authService;
+        _configuration = configuration;
     }
     
     [HttpPost("account")]
     public async Task<JsonResult> CreateUser([FromBody] UserRequest newUserData)
     {
-        try
-        {
+        // try
+        // {
             if (Request.Headers.TryGetValue("x-cliph-key", out var apiKeyHeaderValue))
             {
                 if (string.IsNullOrWhiteSpace(apiKeyHeaderValue))
@@ -31,18 +34,33 @@ public class AuthController : ControllerBase
 
                 var managedUserResult = await _authService.CreateAccount(newUserData, apiKeyHeaderValue!);
 
+                Response.StatusCode = 201;
                 return new JsonResult(new Response<UserResponse>(true, managedUserResult, "Created a new user successfully"));
             }
+            
+            if (Request.Headers.TryGetValue("x-cliph-cross-service-authentication", out var cscaHeaderValue))
+            {
+                string privateKey =
+                    ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration,
+                        "CrossServiceCommunicationAuthentication:Secret");
+                
+                if(cscaHeaderValue != privateKey)
+                    return new JsonResult(new Response(false, "You don't have the required permission to access this resource"));
+                
+                var adminUserResult = await _authService.CreateAccount(newUserData);
 
-            var adminUserResult = await _authService.CreateAccount(newUserData);
-        
-            return new JsonResult(new Response<UserResponse>(true, adminUserResult, "Created a new user successfully"));
-        }
-        catch (Exception e)
-        {
-            Response.StatusCode = 500;
-            return new JsonResult(new Response(false, e.Message));
-        }
+                Response.StatusCode = 201;
+                return new JsonResult(new Response<UserResponse>(true, adminUserResult, "Created a new user successfully"));
+            }
+
+            Response.StatusCode = 404;
+            return new JsonResult(new Response(false, "Unable to determine the required user type"));
+        // }
+        // catch (Exception e)
+        // {
+        //     Response.StatusCode = 500;
+        //     return new JsonResult(new Response(false, e.Message));
+        // }
     }
     
     [HttpPost("session")]
@@ -59,10 +77,24 @@ public class AuthController : ControllerBase
 
                 return new JsonResult(new Response<UserResponse>(true, managedUserResult, "Created a session successfully"));
             }
-
-            var adminUserResult = await _authService.CreateSession(existingUserData);
             
-            return new JsonResult(new Response<UserResponse>(true, adminUserResult, "Created a session successfully"));
+            if (Request.Headers.TryGetValue("x-cliph-cross-service-authentication", out var cscaHeaderValue))
+            {
+                string privateKey =
+                    ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration,
+                        "CrossServiceCommunicationAuthentication:Secret");
+                
+                if(cscaHeaderValue != privateKey)
+                    return new JsonResult(new Response(false, "You don't have the required permission to access this resource"));
+                
+                var adminUserResult = await _authService.CreateSession(existingUserData);
+
+                Response.StatusCode = 200;
+                return new JsonResult(new Response<UserResponse>(true, adminUserResult, "Created a session successfully"));
+            }
+            
+            Response.StatusCode = 401;
+            return new JsonResult(new Response(false, "Unable to determine the required user type"));
         }
         catch (Exception e)
         {

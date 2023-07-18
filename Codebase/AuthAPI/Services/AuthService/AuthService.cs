@@ -162,7 +162,15 @@ class AuthService : IAuthService
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
         );
+
+        var existingAdminFilterBuilder = Builders<AdminUser>.Filter;
+        var existingAdminFilter =
+            existingAdminFilterBuilder.Eq(doc => doc.ApiKey.Value, adminApiKey);
         
+        var existingAdmin = await db.GetCollection<AdminUser>("users").Find(existingAdminFilter).FirstOrDefaultAsync();
+        if (existingAdmin == null)
+            throw new Exception("Unknown API key provided. Please contact your system administrator for further assistance!");
+
         var existingUserFilterBuilder = Builders<User>.Filter;
         var existingUserFilter =
             existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &

@@ -67,7 +67,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-app.UseMiddleware<CrossServiceCommunicationAuthenticationMiddleware>();
+app.UseWhen(httpContext => !httpContext.Request.Path.StartsWithSegments("/api/v1/auth"),
+    subApp =>
+    {
+        subApp.UseMiddleware<CrossServiceCommunicationAuthenticationMiddleware>();
+    }
+);
 
 if (app.Environment.IsDevelopment())
 {

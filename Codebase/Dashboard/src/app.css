@@ -18,3 +18,8 @@
         font-style: normal;
     }
 }
+
+.basic-animation {
+    transition: all;
+    transition-duration: 300ms;
+}

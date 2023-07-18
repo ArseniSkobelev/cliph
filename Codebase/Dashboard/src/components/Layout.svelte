@@ -1,5 +1,6 @@
 <script>
     import SideBar from "./SideBar.svelte";
+    import TopBar from "./TopBar.svelte";
 </script>
 
 <div class="flex flex-row h-full font-lato">
@@ -8,7 +9,7 @@
     <div class="flex flex-col">
         <div>
             <!--      top-bar      -->
-            <h2>TOPBAR</h2>
+            <TopBar/>
         </div>
         <div>
             <slot/>
