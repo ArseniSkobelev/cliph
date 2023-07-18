@@ -4,3 +4,7 @@ export type Response = {
   message: string;
   data: any | undefined;
 };
+
+export type JwtResponse = {
+  jwt: string;
+};

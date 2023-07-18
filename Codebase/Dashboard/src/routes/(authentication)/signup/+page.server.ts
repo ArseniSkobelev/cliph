@@ -5,7 +5,8 @@ import {
   SECRET_CSCA_HEADER_NAME,
   SECRET_CSCA_TOKEN,
 } from "$env/static/private";
-import type { Response } from "$lib";
+import type { Response, JwtResponse } from "$lib";
+import { setAuthToken } from "$lib/helpers";
 
 export const actions: Actions = {
   signup: async ({ cookies, request }) => {
@@ -36,11 +37,16 @@ export const actions: Actions = {
       }),
     });
 
-    console.log(response);
-
     const responseBody: Response = await response.json();
 
-    console.log(responseBody.success, responseBody.message, responseBody.data);
+    if (!responseBody.success)
+      return fail(response.status, {
+        error: responseBody.message,
+      });
+
+    const newUserData: JwtResponse = responseBody.data;
+
+    setAuthToken({ cookies: cookies, token: newUserData.jwt });
 
     // redirect user to the dashboard
     throw redirect(302, "/");
