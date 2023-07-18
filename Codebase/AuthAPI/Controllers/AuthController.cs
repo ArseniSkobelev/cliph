@@ -25,8 +25,8 @@ public class AuthController : ControllerBase
     [HttpPost("account")]
     public async Task<JsonResult> CreateUser([FromBody] UserRequest newUserData)
     {
-        // try
-        // {
+        try
+        {
             if (Request.Headers.TryGetValue("x-cliph-key", out var apiKeyHeaderValue))
             {
                 if (string.IsNullOrWhiteSpace(apiKeyHeaderValue))
@@ -55,12 +55,12 @@ public class AuthController : ControllerBase
 
             Response.StatusCode = 404;
             return new JsonResult(new Response(false, "Unable to determine the required user type"));
-        // }
-        // catch (Exception e)
-        // {
-        //     Response.StatusCode = 500;
-        //     return new JsonResult(new Response(false, e.Message));
-        // }
+        }
+        catch (Exception e)
+        {
+            Response.StatusCode = 500;
+            return new JsonResult(new Response(false, e.Message));
+        }
     }
     
     [HttpPost("session")]
