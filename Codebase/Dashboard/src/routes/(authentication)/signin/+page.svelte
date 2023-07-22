@@ -2,6 +2,7 @@
     import {enhance} from '$app/forms';
     import type {ActionData, SubmitFunction} from './$types';
     import Button from "../../../components/Button.svelte";
+    import Alert from "../../../components/Alert.svelte";
 
     export let form: ActionData;
 
@@ -63,7 +64,7 @@
     </form>
     {#if form?.error}
         <div>
-            {form.error}
+            <Alert alertType="error" alertMessage={form.error}/>
         </div>
     {/if}
 </div>

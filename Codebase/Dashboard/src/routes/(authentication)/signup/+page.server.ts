@@ -49,6 +49,6 @@ export const actions: Actions = {
     setAuthToken({ cookies: cookies, token: newUserData.jwt });
 
     // redirect user to the dashboard
-    throw redirect(302, "/");
+    throw redirect(302, "/dashboard");
   },
 };

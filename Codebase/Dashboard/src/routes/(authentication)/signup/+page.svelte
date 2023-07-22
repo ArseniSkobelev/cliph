@@ -2,6 +2,7 @@
     import {enhance} from '$app/forms';
     import type {ActionData, SubmitFunction} from './$types';
     import Button from "../../../components/Button.svelte";
+    import Alert from "../../../components/Alert.svelte";
 
     export let form: ActionData;
 
@@ -51,7 +52,7 @@
                     placeholder="***********"
                     class="p-2 border rounded border-dark-gray focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                     minlength="8"
-                    required
+
             >
         </div>
         <Button text="Signup" {isLoading}/>
@@ -63,7 +64,7 @@
     </form>
     {#if form?.error}
         <div>
-            {form.error}
+            <Alert alertType="error" alertMessage={form.error}/>
         </div>
     {/if}
 </div>

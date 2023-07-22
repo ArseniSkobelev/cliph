@@ -15,3 +15,13 @@ export const setAuthToken = ({
     path: "/",
   });
 };
+
+export const getAuthToken = ({
+  cookies,
+}: {
+  cookies: Cookies;
+}): string | undefined => {
+  if (!cookies) return undefined;
+
+  return cookies.get("AuthorizationToken");
+};

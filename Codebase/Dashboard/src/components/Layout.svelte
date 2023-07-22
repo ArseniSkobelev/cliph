@@ -4,14 +4,12 @@
 </script>
 
 <div class="flex flex-row h-full font-lato">
-    <!--    sidebar    -->
     <SideBar/>
     <div class="flex flex-col">
         <div>
-            <!--      top-bar      -->
             <TopBar/>
         </div>
-        <div>
+        <div class="px-8">
             <slot/>
         </div>
     </div>
