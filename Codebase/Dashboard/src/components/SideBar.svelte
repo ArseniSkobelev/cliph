@@ -14,11 +14,11 @@
     </div>
     <Nav/>
     <div class="flex flex-col gap-y-4 mt-auto">
-        <button class="flex flex-row gap-x-4 text-dark-gray items-center group">
+        <a class="flex flex-row gap-x-4 text-dark-gray items-center group" href="/logout">
             <LogoutIcon height="32" width="32"
                         className="fill-dark-gray group-hover:fill-brand-300 basic-animation"/>
             <span class="group-hover:text-brand-300 basic-animation">Logout</span>
-        </button>
+        </a>
         <button class="flex flex-row gap-x-4 text-dark-gray items-center group">
             <InformationIcon height="32" width="32"
                              dotClass="fill-dark-gray group-hover:fill-brand-300 basic-animation"

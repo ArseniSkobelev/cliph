@@ -32,5 +32,14 @@ export async function handle({ event, resolve }) {
     if (!responseBody.success) throw redirect(302, "/signup");
   }
 
+  if(requestedPath == "/logout")
+  {
+    event.cookies.delete("AuthorizationToken");
+    throw redirect(302, '/signup');
+  }
+
+  if(requestedPath == "/")
+    throw redirect(302, '/dashboard');
+
   return await resolve(event);
 }

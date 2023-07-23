@@ -57,7 +57,7 @@
         </div>
         <Button text="Signup" {isLoading}/>
         <a class="flex justify-center mt-8" href="/signin">
-            <span class="text-brand-500 basic-animation hover:text-brand-600 text-xl">
+            <span class="text-brand-500 basic-animation text-center hover:text-brand-600 text-xl">
                 Already a member? <strong>Click here to sign in</strong>
             </span>
         </a>
