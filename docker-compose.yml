@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  auth:
+    build: Codebase/AuthAPI/
+    image: auth-service
+    ports:
+      - "3001:80"
+    depends_on:
+      - mongodb
+    environment:
+      Database__ConnectionString: mongodb://mongodb:27017/cliph
+      Database__Name: cliph
+      JWT__Secret: secretsecretsecretsecretsecretsecretsecretsecretsecretsecret
+      JWT__Issuer: http://localhost
+      JWT__Audience: http://localhost
+      CrossServiceCommunicationAuthentication__Secret: development
+    networks:
+      - node-network
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - node-network
+
+volumes:
+  dbdata:
+
+networks:
+  node-network:
+    driver: bridge
