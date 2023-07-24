@@ -8,3 +8,7 @@ export type Response = {
 export type JwtResponse = {
   jwt: string;
 };
+
+export type ApiKey = {
+  key: string | undefined;
+};
