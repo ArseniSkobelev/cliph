@@ -5,3 +5,4 @@ appsettings.json
 appsettings.Development.json
 **/.env
 **/node_modules
+**/.svelte-kit/
