@@ -13,7 +13,7 @@ export const actions: Actions = {
     // get the data from the form and extract named values; email, password
     const formData = Object.fromEntries(await request.formData());
     const { email, password } = formData;
-
+    
     // validate username and password
     if (!email || !password)
       return fail(400, {

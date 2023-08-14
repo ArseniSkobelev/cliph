@@ -18,7 +18,7 @@
     }
 </script>
 
-<div class="flex flex-col gap-y-8 w-10/12 md:w-4/12 lg:w-2/12">
+<div class="flex flex-col gap-y-8 w-10/12 md:w-4/12">
     <div class="flex justify-center">
         <h1 class="text-4xl">Sign up</h1>
     </div>
