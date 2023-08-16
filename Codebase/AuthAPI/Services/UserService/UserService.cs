@@ -27,7 +27,7 @@ class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public async Task<User> GetUserData(string userJwt)
+    public async Task<AdminUser> GetAdminUserData(string userJwt)
     {
         using var db = new Database(
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
@@ -36,9 +36,27 @@ class UserService : IUserService
 
         Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
 
-        var userFilter = Builders<User>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
+        var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
             
-        var existingUser = await db.GetCollection<User>("users").Find(userFilter).FirstOrDefaultAsync();
+        var existingUser = await db.GetCollection<AdminUser>("users").Find(userFilter).FirstOrDefaultAsync();
+        if (existingUser == null)
+            throw new Exception("No user found with the provided authentication data");
+
+        return existingUser;
+    }
+
+    public async Task<ManagedUser> GetManagedUserData(string userJwt)
+    {
+        using var db = new Database(
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:ConnectionString"),
+            ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
+        );
+
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
+
+        var userFilter = Builders<ManagedUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
+
+        var existingUser = await db.GetCollection<ManagedUser>("users").Find(userFilter).FirstOrDefaultAsync();
         if (existingUser == null)
             throw new Exception("No user found with the provided authentication data");
 

@@ -1,8 +1,11 @@
-﻿using cliph.Models.Http;
+﻿using cliph.Library;
+using cliph.Models.Http;
+using cliph.Models.Responses;
 using cliph.Models.User;
 using cliph.Services.UserService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace cliph.Controllers;
 
@@ -11,10 +14,12 @@ namespace cliph.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IConfiguration _configuration;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IConfiguration configuration)
     {
         _userService = userService;
+        _configuration = configuration;
     }
     
     [Authorize]
@@ -23,14 +28,43 @@ public class UserController : ControllerBase
     {
         try
         {
-            if (Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+            if (Request.Headers.TryGetValue("x-cliph-key", out var apiKeyHeaderValue))
             {
-                if (string.IsNullOrWhiteSpace(authHeaderValue))
-                    return new JsonResult(new Response(false, "Authentication token not found"));
+                // managed user trying to recieve their data
 
-                var userData = await _userService.GetUserData(authHeaderValue.ToString().Replace("Bearer ", ""));
+                await Console.Out.WriteLineAsync("managed user");
 
-                return new JsonResult(new Response<User>(true, userData, "Retrieved user data successfully"));
+                if (Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+                {
+                    if (string.IsNullOrWhiteSpace(authHeaderValue))
+                        return new JsonResult(new Response(false, "Authentication token not found"));
+
+                    var userData = await _userService.GetManagedUserData(authHeaderValue.ToString().Replace("Bearer ", ""));
+
+                    return new JsonResult(new Response<ManagedUser>(true, userData, "Retrieved user data successfully"));
+                }
+            }
+
+            if (Request.Headers.TryGetValue("x-cliph-cross-service-authentication", out var cscaHeaderValue))
+            {
+                // admin user
+
+                string privateKey =
+                    ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration,
+                        "CrossServiceCommunicationAuthentication:Secret");
+
+                if (cscaHeaderValue != privateKey)
+                    return new JsonResult(new Response(false, "You don't have the required permission to access this resource"));
+
+                if (Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+                {
+                    if (string.IsNullOrWhiteSpace(authHeaderValue))
+                        return new JsonResult(new Response(false, "Authentication token not found"));
+
+                    var userData = await _userService.GetAdminUserData(authHeaderValue.ToString().Replace("Bearer ", ""));
+
+                    return new JsonResult(new Response<AdminUser>(true, userData, "Retrieved user data successfully"));
+                }
             }
         
             return new JsonResult(new Response(false, "Unable to fetch the requested users data"));
@@ -38,6 +72,7 @@ public class UserController : ControllerBase
         catch (Exception e)
         {
             Response.StatusCode = 500;
+            await Console.Out.WriteLineAsync(e.Message);
             return new JsonResult(new Response(false, e.Message));
         }
     }

@@ -18,11 +18,11 @@
     }
 </script>
 
-<div class="flex flex-col gap-y-8 w-10/12 md:w-4/12">
+<div class="flex flex-col lg:gap-y-8 gap-y-4 w-10/12 md:w-4/12">
     <div class="flex justify-center">
         <h1 class="text-4xl">Sign up</h1>
     </div>
-    <form action="?/signup" method="post" class="flex flex-col gap-y-8" use:enhance={createUser}>
+    <form action="?/signup" method="post" class="flex flex-col lg:gap-y-8 gap-y-4" use:enhance={createUser}>
         <div class="flex flex-col gap-y-2">
             <label
                     for="email"
