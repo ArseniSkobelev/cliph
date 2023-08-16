@@ -1,4 +1,7 @@
 ﻿using cliph.Library;
+using cliph.Models;
+using cliph.Models.Http;
+using cliph.Models.User;
 using cliph.Services.StatsService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +24,17 @@ public class StatsController : ControllerBase
     [HttpGet("users")]
     public async Task<JsonResult> GetUsersManagedByAdmin()
     {
-        var adminUserId = Jwt.RetrieveClaimByClaimType(Request.Headers.Authorization.ToString(), "user_id").Value.ToString();
-        var users = _statsService.GetManagedUsers(ObjectId.Parse(adminUserId));
+        try
+        {
+            var adminUserId = Jwt.RetrieveClaimByClaimType(Request.Headers.Authorization.ToString().Replace("Bearer ", ""), ClaimType.UserId).Value.ToString();
+            var users = await _statsService.GetManagedUsers(ObjectId.Parse(adminUserId));
 
-        throw new NotImplementedException();
+            return new JsonResult(new Response<List<ManagedUser>>(true, users, "Fetched users successfully"));
+        }
+        catch (Exception e)
+        {
+            Response.StatusCode = 500;
+            return new JsonResult(new Response(false, e.Message));
+        }
     }
 }

@@ -3,6 +3,7 @@ using cliph.Models.Http;
 using cliph.Models.Responses;
 using cliph.Models.User;
 using cliph.Services.UserService;
+using Cliph.AuthAPI.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -73,6 +74,23 @@ public class UserController : ControllerBase
         {
             Response.StatusCode = 500;
             await Console.Out.WriteLineAsync(e.Message);
+            return new JsonResult(new Response(false, e.Message));
+        }
+    }
+
+    [HttpDelete]
+    [Authorize]
+    public async Task<JsonResult> DeleteUser([FromBody] Email email)
+    {
+        try
+        {
+            await Console.Out.WriteLineAsync(email.EmailAddress);
+            await _userService.DeleteAdminUser(Request.Headers.Authorization.ToString().Replace("Bearer ", ""));
+            throw new NotImplementedException();
+        }
+        catch (Exception e)
+        {
+            Response.StatusCode = 500;
             return new JsonResult(new Response(false, e.Message));
         }
     }

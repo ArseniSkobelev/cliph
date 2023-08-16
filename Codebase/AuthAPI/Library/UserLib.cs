@@ -19,7 +19,7 @@ public static class UserLib
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, newUserData.Email),
-            new Claim("user_id", newUserId.ToString()),
+            new Claim("UserId", newUserId.ToString()),
         };
         
         var jwt = Jwt.CreateJwt(

@@ -2,6 +2,7 @@ using System.Text;
 using cliph.Middleware;
 using cliph.Services.ApiKeyService;
 using cliph.Services.AuthService;
+using cliph.Services.StatsService;
 using cliph.Services.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 
 var configuration = builder.Configuration;
 

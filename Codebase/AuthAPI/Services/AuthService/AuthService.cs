@@ -46,7 +46,7 @@ class AuthService : IAuthService
             claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, existingUser.Email),
-                new Claim("user_id", existingUser.Id.ToString()),
+                new Claim("UserId", existingUser.Id.ToString()),
             };
         }
         catch (Exception)
@@ -110,7 +110,7 @@ class AuthService : IAuthService
             claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, existingUser.Email),
-                new Claim("user_id", existingUser.Id.ToString()),
+                new Claim("UserId", existingUser.Id.ToString()),
             };
         }
         catch (Exception)
