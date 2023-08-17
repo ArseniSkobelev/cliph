@@ -13,8 +13,8 @@ export async function handle({ event, resolve }) {
   const authToken = cookies.get("AuthorizationToken");
 
   if (requestedPath.includes("/dashboard")) {
-    if (!authToken) throw redirect(302, "/signup");
-
+    if (authToken == null) throw redirect(302, "/signup");
+    
     const requestUrl = `${SECRET_AUTH_API_URI}/api/v1/user`;
 
     const apiResponse = await fetch(requestUrl, {

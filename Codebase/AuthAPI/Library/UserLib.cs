@@ -19,7 +19,7 @@ public static class UserLib
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, newUserData.Email),
-            new Claim("user_id", newUserId.ToString()),
+            new Claim("UserId", newUserId.ToString()),
         };
         
         var jwt = Jwt.CreateJwt(
@@ -68,5 +68,15 @@ public static class UserLib
             Jwt = jwt,
             User = newUser
         };
+    }
+
+    public static string GetBearerTokenFromRequest(HttpRequest request)
+    {
+        var tokenWithTrimmedBearer = request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        if (string.IsNullOrWhiteSpace(tokenWithTrimmedBearer))
+            throw new Exception("Unable to retrieve bearer token");
+
+        return tokenWithTrimmedBearer;
     }
 }

@@ -30,7 +30,7 @@ public class ApiKeyService : IApiKeyService
             CreatedAt = DateTime.Now
         };
 
-        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, ClaimType.UserId);
 
         var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
         var userUpdate = Builders<AdminUser>.Update.Set(doc => doc.ApiKey, apiKey);
@@ -76,7 +76,7 @@ public class ApiKeyService : IApiKeyService
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
         );
         
-        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, "user_id");
+        Claim userIdClaim = Jwt.RetrieveClaimByClaimType(userJwt, ClaimType.UserId);
 
         var userFilter = Builders<AdminUser>.Filter.Eq(doc => doc.Id, ObjectId.Parse(userIdClaim.Value));
 

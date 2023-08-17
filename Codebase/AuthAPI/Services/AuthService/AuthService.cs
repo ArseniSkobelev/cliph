@@ -46,7 +46,7 @@ class AuthService : IAuthService
             claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, existingUser.Email),
-                new Claim("user_id", existingUser.Id.ToString()),
+                new Claim("UserId", existingUser.Id.ToString()),
             };
         }
         catch (Exception)
@@ -110,7 +110,7 @@ class AuthService : IAuthService
             claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Email, existingUser.Email),
-                new Claim("user_id", existingUser.Id.ToString()),
+                new Claim("UserId", existingUser.Id.ToString()),
             };
         }
         catch (Exception)
@@ -140,18 +140,20 @@ class AuthService : IAuthService
             ConfigurationContext.RetrieveSafeConfigurationValue<string>(_configuration, "Database:Name")
         );
         
-        var existingUserFilterBuilder = Builders<User>.Filter;
+        var existingUserFilterBuilder = Builders<AdminUser>.Filter;
         var existingUserFilter =
             existingUserFilterBuilder.Eq(doc => doc.Email, newUserData.Email) &
             existingUserFilterBuilder.Eq(doc => doc.UserType, UserType.Admin);
 
-        var existingUser = await db.GetCollection<User>("users").Find(existingUserFilter).FirstOrDefaultAsync();
+        var existingUser = await db.GetCollection<AdminUser>("users").Find(existingUserFilter).FirstOrDefaultAsync();
         if (existingUser != null)
             throw new Exception("User with the provided username/email already exists");
 
         var newUser = UserLib.CreateUser(newUserData, UserType.Admin, _configuration, null);
 
-        await db.GetCollection<User>("users").InsertOneAsync(newUser.User ?? throw new InvalidOperationException("Unable to create a new managed user"));
+        await db.GetCollection<AdminUser>("users").InsertOneAsync((AdminUser)newUser.User! ?? throw new
+            InvalidOperationException
+            ("Unable to create a new managed user"));
 
         return newUser;
     }

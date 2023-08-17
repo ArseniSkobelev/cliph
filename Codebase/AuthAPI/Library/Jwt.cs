@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using cliph.Models;
 using Microsoft.IdentityModel.Tokens;
 
 namespace cliph.Library;
@@ -27,7 +28,7 @@ public static class Jwt
         return tokenHandler.WriteToken(token);
     }
 
-    public static Claim RetrieveClaimByClaimType(string token, string claimType)
+    public static Claim RetrieveClaimByClaimType(string token, ClaimType claimType)
     {
         var handler = new JwtSecurityTokenHandler();
         var parsedToken = handler.ReadJwtToken(token);
@@ -36,7 +37,7 @@ public static class Jwt
 
         try
         {
-            foundClaim = parsedToken.Claims.FirstOrDefault(claim => claim.Type == claimType);
+            foundClaim = parsedToken.Claims.FirstOrDefault(claim => claim.Type == claimType.ToString());
         }
         catch (Exception)
         {

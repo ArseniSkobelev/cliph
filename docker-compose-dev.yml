@@ -1,38 +1,38 @@
 version: "3.8"
 services:
-  authrest:
-    build: Codebase/AuthAPI/
-    image: auth-service
-    ports:
-      - "3001:80"
-    depends_on:
-      - mongodb
-    environment:
-      Database__ConnectionString: mongodb://mongodb:27017/cliph
-      Database__Name: cliph
-      JWT__Secret: secretsecretsecretsecretsecretsecretsecretsecretsecretsecret
-      JWT__Issuer: http://localhost
-      JWT__Audience: http://localhost
-      CrossServiceCommunicationAuthentication__Secret: development
-    networks:
-      - node-network
-  dashboard:
-    build:
-      context: Codebase/Dashboard/
-      dockerfile: Dockerfile
-      args:
-        - NODE_ENV=production
-        - SECRET_AUTH_API_URI=http://authrest:80
-        - SECRET_CSCA_TOKEN=development
-        - SECRET_CSCA_HEADER_NAME=x-cliph-cross-service-authentication
-    image: dashboard
-    environment:
-      - ORIGIN=http://localhost:3000
-      - NODE_ENV=development
-    ports:
-      - "3000:3000"
-    networks:
-      - node-network
+  #authrest:
+  #  build: Codebase/AuthAPI/
+  #  image: auth-service
+  #  ports:
+  #    - "3001:80"
+  #  depends_on:
+  #    - mongodb
+  #  environment:
+  #    Database__ConnectionString: mongodb://mongodb:27017/cliph
+  #    Database__Name: cliph
+  #    JWT__Secret: secretsecretsecretsecretsecretsecretsecretsecretsecretsecret
+  #    JWT__Issuer: http://localhost
+  #    JWT__Audience: http://localhost
+  #    CrossServiceCommunicationAuthentication__Secret: development
+  #  networks:
+  #    - node-network
+        #  dashboard:
+        #build:
+        #context: Codebase/Dashboard/
+        #dockerfile: Dockerfile
+        #args:
+        #- NODE_ENV=production
+        #- SECRET_AUTH_API_URI=http://authrest:80
+        #- SECRET_CSCA_TOKEN=development
+        #- SECRET_CSCA_HEADER_NAME=x-cliph-cross-service-authentication
+        #image: dashboard
+        #environment:
+        #      - ORIGIN=http://localhost:3000
+        #      - NODE_ENV=development
+        #    ports:
+        #      - "3000:3000"
+        #networks:
+        #- node-network
   mongodb:
     image: mongo:6-jammy
     ports:
