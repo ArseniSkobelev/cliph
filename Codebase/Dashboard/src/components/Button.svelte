@@ -1,10 +1,14 @@
 <script lang="ts">
     export let isLoading: boolean = false;
+
+    export let isDanger: boolean = false;
     export let text: string = "Button";
 </script>
 
 <button
-        class="px-4 py-2 rounded bg-brand-500 text-white flex items-center justify-center font-semibold basic-animation hover:bg-brand-600">
+        class='{isDanger ? "bg-error-500 text-white hover:bg-error-600" :
+        "bg-brand-500 text-white hover:bg-brand-600"} px-4 py-2 rounded flex items-center justify-center
+        basic-animation' on:click>
     {#if isLoading}
         <div role="status">
             <svg aria-hidden="true" class="w-6 h-6 mr-2 animate-spin text-white fill-brand-300"

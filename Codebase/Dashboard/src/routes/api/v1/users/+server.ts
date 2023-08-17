@@ -1,25 +1,34 @@
 import {SECRET_AUTH_API_URI, SECRET_CSCA_HEADER_NAME, SECRET_CSCA_TOKEN} from "$env/static/private";
 
 export async function DELETE({ request, cookies }) {
-    const data = await request.json();
-    const authToken = cookies.get("AuthorizationToken");
+    let data;
+    
+    try {
+        data = await request.json();
+    }
+    catch {
 
+    }
+    
+    const authToken = cookies.get("AuthorizationToken");
+    
     const requestUri = `${SECRET_AUTH_API_URI}/api/v1/user`;
 
-    const apiResponse = await fetch(requestUri, {
+    let apiRequestOptions = {
         method: "DELETE",
         headers: {
             [SECRET_CSCA_HEADER_NAME]: SECRET_CSCA_TOKEN,
             Authorization: authToken,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            email: data.email
-        })
-    });
+        body: !data ? null : JSON.stringify({email: data.email})
+    };
 
-    const responseOptions: ResponseInit = {
-        status: 418
+    let apiResponse = await fetch(requestUri, apiRequestOptions);
+
+    let responseOptions: ResponseInit = {
+        status: apiResponse.status
     }
-    return new Response('teapot', responseOptions);
+
+    return new Response('', responseOptions);
 }

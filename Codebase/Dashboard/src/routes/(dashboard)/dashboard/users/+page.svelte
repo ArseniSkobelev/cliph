@@ -1,5 +1,6 @@
 <script lang="ts">
     import Alert from "../../../../components/Alert.svelte";
+    import { invalidateAll } from "$app/navigation";
 
     const deleteUser = async (userEmail: string) => {
         const isSure = confirm(`Are you sure that you want to delete ${userEmail}?`)
@@ -17,6 +18,8 @@
             })
         });
 
+        if(deleteResult.status != 500)
+           invalidateAll();
     }
     
     export let data;

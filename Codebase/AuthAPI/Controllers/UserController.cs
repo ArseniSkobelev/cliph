@@ -80,13 +80,38 @@ public class UserController : ControllerBase
 
     [HttpDelete]
     [Authorize]
-    public async Task<JsonResult> DeleteUser([FromBody] Email email)
+    public async Task<JsonResult> DeleteUser([FromBody] Email? email)
     {
         try
         {
-            await Console.Out.WriteLineAsync(email.EmailAddress);
-            await _userService.DeleteAdminUser(Request.Headers.Authorization.ToString().Replace("Bearer ", ""));
-            throw new NotImplementedException();
+            // fetch headers
+            string? apiKeyHeaderValue = Request.Headers["x-cliph-key"];
+            string? cscaHeaderValue = Request.Headers["x-cliph-cross-service-authentication"];
+
+            if (cscaHeaderValue != null)
+            {
+                // admin is trying to delete itself or a user managed by him
+                if (email == null)
+                {
+                    // admin user is trying to delete itself
+                    await _userService.DeleteAdminUser(UserLib.GetBearerTokenFromRequest(Request));
+                    return new JsonResult(new Response(true, "Your admin user deleted successfully"));
+                }
+
+                // admin is trying to delete a user managed by him
+                await _userService.DeleteManagedUser(UserLib.GetBearerTokenFromRequest(Request),
+                    email.EmailAddress);
+                return new JsonResult(new Response(true, "Deleted your managed user successfully"));
+            }
+
+            // here we already know that the user is a managed user, therefore,
+            // check whether they have an API key present.
+            if(apiKeyHeaderValue == null)
+                return new JsonResult(new Response(false, "Unable to verify the provided API key"));
+
+            // delete the managed user account
+            await _userService.DeleteManagedUser(UserLib.GetBearerTokenFromRequest(Request));
+            return new JsonResult(new Response(true, "Deleted your user account successfully"));
         }
         catch (Exception e)
         {

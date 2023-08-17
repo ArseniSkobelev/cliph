@@ -69,4 +69,14 @@ public static class UserLib
             User = newUser
         };
     }
+
+    public static string GetBearerTokenFromRequest(HttpRequest request)
+    {
+        var tokenWithTrimmedBearer = request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        if (string.IsNullOrWhiteSpace(tokenWithTrimmedBearer))
+            throw new Exception("Unable to retrieve bearer token");
+
+        return tokenWithTrimmedBearer;
+    }
 }
