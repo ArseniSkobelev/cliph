@@ -3,9 +3,12 @@
     import Nav from "./Nav.svelte";
     import LogoutIcon from "./icons/LogoutIcon.svelte";
     import InformationIcon from "./icons/InformationIcon.svelte";
+    import Button from "./Button.svelte";
+
+    let isSideBarShown = false;
 </script>
 
-<div class="bg-light-gray w-80 h-full py-14 px-8 flex flex-col">
+<div class='{isSideBarShown ? "flex flex-col" : "hidden"} w-80 sm:flex sm:flex-col bg-light-gray h-full py-14 px-8'>
     <div>
         <a href="/" class="gap-x-4 flex flex-row items-center max-w-fit mb-16">
             <Logo width="64" height="64"/>

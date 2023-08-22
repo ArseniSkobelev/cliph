@@ -4,7 +4,7 @@
 </script>
 
 <div class="flex flex-row h-full font-lato">
-    <SideBar/>
+    <SideBar />
     <div class="flex flex-col">
         <div>
             <TopBar/>

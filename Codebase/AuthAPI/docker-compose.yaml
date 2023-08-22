@@ -1,0 +1,31 @@
+﻿version: '3.8'
+
+services:
+  authapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+      - Database__ConnectionString=mongodb://mongodb:27017
+      - Database__Name=cliph-dev
+      - JWT__Secret=secretsecretsecretsecretsecretsecretsecretsecretsecret
+      - JWT__Issuer=http://localhost
+      - JWT__Audience=http://localhost
+      - CrossServiceCommunicationAuthentication__Secret=development
+    ports:
+      - "5000:80"
+    volumes:
+      - .:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - cliph-dev-db-data:/data/db
+    networks:
+      - node-network
+
+volumes:
+  cliph-dev-db-data:
