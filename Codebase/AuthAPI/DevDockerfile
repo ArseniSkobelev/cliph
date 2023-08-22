@@ -1,0 +1,28 @@
+﻿# Use the appropriate base image with the SDK
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the .csproj and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy the rest of the application and build
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Set the runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:5.0
+WORKDIR /app
+COPY --from=build-env /app/out .
+
+ENV Database__ConnectionString=
+ENV Database__Name=
+ENV JWT__Secret=
+ENV JWT__Issuer=
+ENV JWT__Audience=
+ENV CrossServiceCommunicationAuthentication__Secret=
+
+# Start the application
+ENTRYPOINT ["dotnet", "Cliph.AuthAPI.dll"]
